@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: #1c1917;
+    background-color: #fafaf9;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .font-korean {
+    font-family: 'Noto Sans KR', 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+
+/* Cinematic Video Motion Keyframes */
+@keyframes kenburns-zoom-in {
+  0% {
+    transform: scale(1.0) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.12) translate(-1.5%, -1%);
+  }
+  100% {
+    transform: scale(1.22) translate(-2.5%, -2%);
+  }
+}
+
+@keyframes kenburns-pan-right {
+  0% {
+    transform: scale(1.15) translate(-3%, 0);
+  }
+  50% {
+    transform: scale(1.2) translate(1%, -1.5%);
+  }
+  100% {
+    transform: scale(1.12) translate(3%, -1%);
+  }
+}
+
+@keyframes kenburns-drift {
+  0% {
+    transform: scale(1.2) translate(1%, 2%);
+  }
+  50% {
+    transform: scale(1.1) translate(-1%, 0);
+  }
+  100% {
+    transform: scale(1.18) translate(0, -2%);
+  }
+}
+
+@keyframes float-ice {
+  0% {
+    transform: translateY(0px) rotate(0deg) scale(0.9);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-25px) rotate(15deg) scale(1.05);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-50px) rotate(30deg) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes sound-wave {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+
+.animate-kenburns-1 {
+  animation: kenburns-zoom-in 8s ease-in-out infinite alternate;
+}
+
+.animate-kenburns-2 {
+  animation: kenburns-pan-right 8s ease-in-out infinite alternate;
+}
+
+.animate-kenburns-3 {
+  animation: kenburns-drift 8s ease-in-out infinite alternate;
+}
+
+/* TikTok Style Text Stroke & Drop Shadow (No Background Box) */
+.reel-text-shadow {
+  text-shadow: 
+    0 2px 4px rgba(0,0,0,0.9),
+    0 4px 14px rgba(0,0,0,0.9),
+    -1.5px -1.5px 0 #000,
+    1.5px -1.5px 0 #000,
+    -1.5px 1.5px 0 #000,
+    1.5px 1.5px 0 #000,
+    0 0 8px rgba(0,0,0,0.7);
+}
+
+.reel-word-active {
+  color: #fde047;
+  text-shadow: 
+    0 0 16px rgba(250, 204, 21, 0.8),
+    -1.5px -1.5px 0 #000,
+    1.5px -1.5px 0 #000,
+    -1.5px 1.5px 0 #000,
+    1.5px 1.5px 0 #000,
+    0 3px 10px rgba(0,0,0,0.9);
+  transform: scale(1.08);
+  display: inline-block;
+  transition: transform 0.15s ease, color 0.15s ease;
+}

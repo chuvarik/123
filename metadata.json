@@ -1,0 +1,6 @@
+{
+  "name": "Ah-Ah: Korean Iced Americano 15s Script Studio",
+  "description": "15-second social media video script, interactive reel player, teleprompter, and cultural guide to Korea's Iced Americano obsession.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
