@@ -1,3 +1,7 @@
+import imgBeat1 from "../assets/images/korean_iced_americano_cup_1792390266384.jpg";
+import imgBeat2 from "../assets/images/seoul_cafe_street_takeaway_1792390266683.jpg";
+import imgBeat3 from "../assets/images/eoljukah_winter_coffee_1792390266929.jpg";
+
 export interface BeatItem {
   id: string;
   timeRange: string;
@@ -43,7 +47,7 @@ export const OFFICIAL_BEATS: BeatItem[] = [
     visualDirection: "Macro close-up of a condensation-covered clear plastic cup. Ice cubes rattle crisply as a barista pulls dark espresso over filtered water and ice.",
     onScreenGraphics: "Text pop: “아이스 아메리카노” (Iced Americano) with ice cube icon",
     soundDesign: "Crisp ice clinking in cup, espresso machine hiss, bright energetic pop sound",
-    imagePath: "/src/assets/images/korean_iced_americano_cup_1792390266384.jpg"
+    imagePath: imgBeat1
   },
   {
     id: "beat-2",
@@ -66,7 +70,7 @@ export const OFFICIAL_BEATS: BeatItem[] = [
     visualDirection: "Fast-paced montage of Seoul street corners, office workers walking with take-out cups, and touch-screen order kiosks in budget coffee franchises.",
     onScreenGraphics: "Fast floating tags: ALWAYS ON MENU · CHEAPEST OPTION · ON EVERY CORNER",
     soundDesign: "Bustling Seoul street ambiance, quick camera whip whoosh, coin/cash register chime",
-    imagePath: "/src/assets/images/seoul_cafe_street_takeaway_1792390266683.jpg"
+    imagePath: imgBeat2
   },
   {
     id: "beat-3",
@@ -89,7 +93,7 @@ export const OFFICIAL_BEATS: BeatItem[] = [
     visualDirection: "A person in a winter puffer coat and knit mittens happily clutching a frosty iced cup outdoors against a cool Seoul winter backdrop.",
     onScreenGraphics: "Large animated text stamp: 얼죽아 (Eoljukah) // Winter or Summer, Always Iced!",
     soundDesign: "Subtle winter wind whistle fading into a cheerful concluding sip sound with straw slurping",
-    imagePath: "/src/assets/images/eoljukah_winter_coffee_1792390266929.jpg"
+    imagePath: imgBeat3
   }
 ];
 

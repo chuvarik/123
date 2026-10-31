@@ -1,5 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Music } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  Send,
+  Bookmark,
+  MoreHorizontal,
+  Music,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
+  RotateCcw,
+  Camera,
+  Check,
+  ChevronDown
+} from "lucide-react";
 import { BeatItem } from "../data/scriptData";
 import { sfx } from "../utils/narratorAudio";
 
@@ -52,24 +67,34 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ beats }) => {
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [controlsHovered, setControlsHovered] = useState<boolean>(false);
-  const [bgMusicVolume, setBgMusicVolume] = useState<number>(0.06); // Default 6% - very quiet and gentle
+  const [masterVolume, setMasterVolume] = useState<number>(0.9); // Master volume: voice 100%, music 15%
+  const [showVolumePopup, setShowVolumePopup] = useState<boolean>(false);
+
+  // Instagram Reel Interactive States
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [showHeartBurst, setShowHeartBurst] = useState<boolean>(false);
+  const [showActionFeedback, setShowActionFeedback] = useState<string | null>(null);
+  const [isCaptionExpanded, setIsCaptionExpanded] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const tickerRef = useRef<number | null>(null);
   const lastBeatRef = useRef<number>(-1);
+  const lastTapTimeRef = useRef<number>(0);
 
-  // Initialize and preload master natural neural audio + soft background jazz music
+  // Initialize and preload voiceover + background jazz track
   useEffect(() => {
     const audio = new Audio("/audio/master_15s_voiceover.wav");
     audio.preload = "auto";
+    audio.volume = masterVolume;
     audioRef.current = audio;
 
     const bgMusic = new Audio("/assets/aistudio/the_mountain-easy-jazz-618215__1__dc50bca9.mp3");
     bgMusic.preload = "auto";
     bgMusic.loop = true;
-    bgMusic.volume = bgMusicVolume;
+    bgMusic.volume = masterVolume * 0.15; // Soft background cafe jazz volume
     bgMusicRef.current = bgMusic;
 
     return () => {
@@ -78,14 +103,17 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ beats }) => {
     };
   }, []);
 
-  // Synchronize background music volume dynamically
+  // Synchronize both audio tracks with master volume (music proportionally softer)
   useEffect(() => {
-    if (bgMusicRef.current) {
-      bgMusicRef.current.volume = bgMusicVolume;
+    if (audioRef.current) {
+      audioRef.current.volume = masterVolume;
     }
-  }, [bgMusicVolume]);
+    if (bgMusicRef.current) {
+      bgMusicRef.current.volume = masterVolume * 0.15;
+    }
+  }, [masterVolume]);
 
-  // Synchronize audio volume / mute
+  // Synchronize mute state
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.muted = isMuted;
@@ -159,8 +187,21 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ beats }) => {
     if (!isPlaying) lastBeatRef.current = -1;
   }, [activeBeatIndex, isPlaying, isMuted]);
 
-  // Toggle Play / Pause
-  const handleTogglePlay = () => {
+  // Video Screen Click: Double-tap to Like, Single-tap to Play/Pause
+  const handleVideoTap = () => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapTimeRef.current;
+    lastTapTimeRef.current = now;
+
+    if (timeSinceLastTap < 300) {
+      // Double tap detected -> Trigger Instagram Heart Burst!
+      setIsLiked(true);
+      setShowHeartBurst(true);
+      setTimeout(() => setShowHeartBurst(false), 850);
+      return;
+    }
+
+    // Single tap -> Toggle Play / Pause
     if (currentTime >= 15.0) {
       setCurrentTime(0);
       if (audioRef.current) audioRef.current.currentTime = 0;
@@ -198,6 +239,13 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ beats }) => {
     }
   };
 
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(window.location.href);
+    setShowActionFeedback("Link copied!");
+    setTimeout(() => setShowActionFeedback(null), 2000);
+  };
+
   // Currently spoken word in the timing map
   const activeWordObj = WORD_TIMESTAMPS.find(
     (w) => currentTime >= w.start && currentTime < w.end
@@ -212,15 +260,12 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ beats }) => {
   );
 
   return (
-    <div
-      className="relative w-full max-w-[390px] aspect-[9/16] max-h-[92vh] bg-stone-950 rounded-[2.5rem] p-2 sm:p-2.5 shadow-2xl border-4 border-stone-800 flex flex-col justify-end overflow-hidden select-none"
-      onMouseEnter={() => setControlsHovered(true)}
-      onMouseLeave={() => setControlsHovered(false)}
-    >
+    <div className="relative w-full max-w-[390px] aspect-[9/16] max-h-[96vh] bg-black rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border-4 border-stone-800 flex flex-col justify-between overflow-hidden select-none">
+      
       {/* Dynamic Video Layers (Ken Burns Pan & Zoom) */}
       <div
-        className="absolute inset-0 z-0 overflow-hidden rounded-[2.2rem] cursor-pointer"
-        onClick={handleTogglePlay}
+        className="absolute inset-0 z-0 overflow-hidden cursor-pointer"
+        onClick={handleVideoTap}
       >
         {beats.map((beat, idx) => {
           const isCurrent = safeBeatIdx === idx;
@@ -240,7 +285,7 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ beats }) => {
             >
               <img
                 src={beat.imagePath}
-                alt={`Shot ${idx + 1}`}
+                alt={`Reel Shot ${idx + 1}`}
                 referrerPolicy="no-referrer"
                 className={`w-full h-full object-cover transition-transform ${
                   isPlaying && isCurrent ? animationClass : "scale-105"
@@ -250,7 +295,7 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ beats }) => {
           );
         })}
 
-        {/* Ambient Floating Particles when playing */}
+        {/* Ambient Floating Condensation Particles */}
         {isPlaying && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
             <div
@@ -268,27 +313,109 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ beats }) => {
           </div>
         )}
 
-        {/* Subtle transparent bottom contrast gradient for crystal-clear readability without any text box */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
+        {/* Instagram Scrim: Top & Bottom Gradients for UI clarity */}
+        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/70 via-black/30 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
       </div>
 
-      {/* Big Prominent Center Play Button Overlay */}
+      {/* Double Tap Big Heart Pop Animation (Iconic Instagram feature) */}
+      {showHeartBurst && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+          <Heart className="w-28 h-28 text-white fill-rose-500 animate-heart-burst drop-shadow-2xl" />
+        </div>
+      )}
+
+      {/* Initial / Paused Center Play Indicator */}
       {!isPlaying && (
         <div
-          onClick={handleTogglePlay}
-          className="absolute inset-0 z-30 flex flex-col items-center justify-center cursor-pointer bg-black/30 backdrop-blur-[2px] transition-all"
+          onClick={handleVideoTap}
+          className="absolute inset-0 z-30 flex flex-col items-center justify-center cursor-pointer bg-black/25 backdrop-blur-[1px] transition-all"
         >
-          <div className="w-20 h-20 rounded-full bg-amber-500/90 text-stone-950 flex items-center justify-center shadow-2xl hover:scale-105 hover:bg-amber-400 active:scale-95 transition-all">
-            <Play className="w-10 h-10 ml-1.5 fill-current" />
+          <div className="w-18 h-18 rounded-full bg-black/50 text-white border border-white/20 flex items-center justify-center shadow-2xl backdrop-blur-md hover:scale-105 transition-all">
+            <Play className="w-9 h-9 ml-1 fill-current" />
           </div>
-          <span className="text-white text-xs font-bold uppercase tracking-widest mt-4 reel-text-shadow">
-            {currentTime >= 15.0 ? "Replay Video" : "Tap to Play"}
+          <span className="text-white text-xs font-semibold tracking-wider uppercase mt-3 drop-shadow-md">
+            {currentTime >= 15.0 ? "Replay Reel" : "Tap to Play"}
           </span>
         </div>
       )}
 
-      {/* Kinetic Borderless Subtitles (Zero background box) */}
-      <div className="relative z-20 pb-4 px-3 text-center pointer-events-none">
+      {/* ──────────────────────────────────────────────────────────── */}
+      {/* 1. TOP BAR: Instagram Header ("Reels" wordmark + Audio/Camera) */}
+      {/* ──────────────────────────────────────────────────────────── */}
+      <div className="relative z-30 flex items-center justify-between px-4 pt-4 text-white">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xl font-bold font-display tracking-tight text-white drop-shadow-md">
+            Reels
+          </span>
+          <ChevronDown className="w-4 h-4 text-white/80 mt-0.5" />
+        </div>
+
+        {/* Top Right: Camera Icon & Sound Toggle / Volume */}
+        <div className="flex items-center gap-2">
+          {/* Volume Button with Expandable Slider */}
+          <div className="relative flex items-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMuted(!isMuted);
+              }}
+              onMouseEnter={() => setShowVolumePopup(true)}
+              className="p-2 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-black/60 transition-colors"
+              title={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted || masterVolume === 0 ? (
+                <VolumeX className="w-4 h-4 text-white/70" />
+              ) : (
+                <Volume2 className="w-4 h-4 text-white" />
+              )}
+            </button>
+
+            {/* Quick volume popup on hover */}
+            {showVolumePopup && (
+              <div
+                onMouseLeave={() => setShowVolumePopup(false)}
+                className="absolute top-11 right-0 bg-stone-900/95 backdrop-blur-md border border-white/15 p-2 rounded-xl shadow-xl flex items-center gap-2 z-50 animate-fade-in"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.02"
+                  value={isMuted ? 0 : masterVolume}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    setMasterVolume(val);
+                    if (val > 0 && isMuted) setIsMuted(false);
+                    if (val === 0) setIsMuted(true);
+                  }}
+                  className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-amber-400"
+                />
+                <span className="text-[10px] font-mono tabular-nums text-white/80 w-6 text-right">
+                  {Math.round((isMuted ? 0 : masterVolume) * 100)}%
+                </span>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleReset();
+            }}
+            className="p-2 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-black/60 transition-colors"
+            title="Restart Reel"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* ──────────────────────────────────────────────────────────── */}
+      {/* 2. CENTER-LOWER: Dynamic Reel Subtitles (NO background box)  */}
+      {/* ──────────────────────────────────────────────────────────── */}
+      <div className="relative z-20 px-4 text-center pointer-events-none my-auto">
         {/* Line 1 */}
         <p className="text-xl sm:text-2xl font-black font-display tracking-tight leading-snug reel-text-shadow text-white">
           {line1Words.map((item, idx) => {
@@ -326,18 +453,207 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ beats }) => {
         </p>
       </div>
 
-      {/* Clean Floating Glassmorphism Controls */}
+      {/* ──────────────────────────────────────────────────────────── */}
+      {/* 3. BOTTOM OVERLAYS: Creator Info + Right Action Column       */}
+      {/* ──────────────────────────────────────────────────────────── */}
+      <div className="relative z-30 pb-3 px-3 flex items-end justify-between gap-3">
+        
+        {/* LEFT: Creator Profile, Caption & Audio Marquee */}
+        <div className="flex-1 space-y-2 text-white max-w-[76%]">
+          {/* Creator Profile Line */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 p-[1.5px] shrink-0 shadow-md">
+              <div className="w-full h-full rounded-full bg-stone-900 overflow-hidden flex items-center justify-center">
+                <img
+                  src={beats[0].imagePath}
+                  alt="Seoul Coffee Culture"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+
+            <span className="text-xs font-bold tracking-tight text-white drop-shadow-md truncate">
+              seoul.coffee.culture
+            </span>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsFollowing(!isFollowing);
+              }}
+              className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-md border transition-all ${
+                isFollowing
+                  ? "bg-white/20 border-white/30 text-white"
+                  : "bg-transparent border-white/60 text-white hover:bg-white/10"
+              }`}
+            >
+              {isFollowing ? "Following" : "Follow"}
+            </button>
+          </div>
+
+          {/* Caption */}
+          <div className="text-xs text-white/95 leading-snug drop-shadow-md pr-1">
+            <p className={isCaptionExpanded ? "" : "line-clamp-2"}>
+              Why South Korea is obsessed with Iced Americano (아이스 아메리카노) ☕️🧊 Even in winter, Koreans never give up on “Ah-Ah”!
+            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsCaptionExpanded(!isCaptionExpanded);
+              }}
+              className="text-[11px] text-white/60 font-medium hover:text-white"
+            >
+              {isCaptionExpanded ? "less" : "...more"}
+            </button>
+          </div>
+
+          {/* Audio Marquee Bar (The Mountain • Easy Jazz) */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowVolumePopup(!showVolumePopup);
+            }}
+            className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-[11px] text-white/90 overflow-hidden cursor-pointer hover:bg-black/60 transition-colors w-fit max-w-full"
+            title="Audio: The Mountain • Easy Jazz"
+          >
+            <Music className="w-3.5 h-3.5 text-white shrink-0 animate-pulse" />
+            <div className="overflow-hidden whitespace-nowrap w-44">
+              <div className="animate-marquee text-[11px]">
+                <span className="mr-8">The Mountain · Easy Jazz • Original Audio</span>
+                <span className="mr-8">The Mountain · Easy Jazz • Original Audio</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: Action Sidebar (Like, Comment, Share, Save, More, Disc) */}
+        <div className="flex flex-col items-center gap-3.5 text-white shrink-0 pb-1">
+          {/* Like Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsLiked(!isLiked);
+              if (!isLiked) {
+                setShowHeartBurst(true);
+                setTimeout(() => setShowHeartBurst(false), 850);
+              }
+            }}
+            className="flex flex-col items-center gap-1 group"
+          >
+            <div className="p-1.5 transition-transform active:scale-75">
+              <Heart
+                className={`w-7 h-7 drop-shadow-lg transition-colors ${
+                  isLiked
+                    ? "fill-rose-500 text-rose-500 scale-110"
+                    : "text-white group-hover:text-rose-300"
+                }`}
+              />
+            </div>
+            <span className="text-[11px] font-semibold drop-shadow-md">
+              {isLiked ? "48.3K" : "48.2K"}
+            </span>
+          </button>
+
+          {/* Comment Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowActionFeedback("1,420 comments");
+              setTimeout(() => setShowActionFeedback(null), 1800);
+            }}
+            className="flex flex-col items-center gap-1 group"
+          >
+            <div className="p-1.5 transition-transform active:scale-75">
+              <MessageCircle className="w-6 h-6 text-white group-hover:text-amber-200 drop-shadow-lg" />
+            </div>
+            <span className="text-[11px] font-semibold drop-shadow-md">
+              1,420
+            </span>
+          </button>
+
+          {/* Share / Send Button */}
+          <button
+            onClick={handleShareClick}
+            className="flex flex-col items-center gap-1 group"
+          >
+            <div className="p-1.5 transition-transform active:scale-75">
+              <Send className="w-6 h-6 text-white group-hover:text-cyan-200 drop-shadow-lg -rotate-12" />
+            </div>
+            <span className="text-[11px] font-semibold drop-shadow-md">
+              19.5K
+            </span>
+          </button>
+
+          {/* Save / Bookmark Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsSaved(!isSaved);
+            }}
+            className="p-1.5 transition-transform active:scale-75"
+          >
+            <Bookmark
+              className={`w-6 h-6 drop-shadow-lg transition-colors ${
+                isSaved ? "fill-white text-white" : "text-white"
+              }`}
+            />
+          </button>
+
+          {/* More (Three dots) */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleReset();
+            }}
+            className="p-1.5 text-white/90 hover:text-white transition-transform active:scale-75"
+            title="Options"
+          >
+            <MoreHorizontal className="w-5 h-5 drop-shadow-lg" />
+          </button>
+
+          {/* Spinning Audio Vinyl Disc at Bottom Right */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowVolumePopup(!showVolumePopup);
+            }}
+            className="w-7 h-7 rounded-full border-2 border-stone-800 bg-black p-[2px] shadow-xl overflow-hidden cursor-pointer"
+            title="Audio Track: Easy Jazz"
+          >
+            <div
+              className={`w-full h-full rounded-full overflow-hidden ${
+                isPlaying ? "animate-spin [animation-duration:3.5s]" : ""
+              }`}
+            >
+              <img
+                src={beats[0].imagePath}
+                alt="Vinyl Disc Cover"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Toast Feedback Overlay */}
+      {showActionFeedback && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-black/80 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-semibold text-white border border-white/20 shadow-2xl animate-fade-in pointer-events-none">
+          {showActionFeedback}
+        </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────────────── */}
+      {/* 4. INSTAGRAM TIMELINE PROGRESS BAR (Bottom 2px Edge)         */}
+      {/* ──────────────────────────────────────────────────────────── */}
       <div
-        className={`relative z-30 w-full mb-1 p-2.5 rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 text-white transition-opacity duration-300 ${
-          isPlaying && !controlsHovered ? "opacity-75 hover:opacity-100" : "opacity-100"
-        }`}
+        className="relative z-30 w-full group/timeline py-1 bg-gradient-to-t from-black/60 to-transparent cursor-pointer"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Scrubber Progress Bar */}
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-[11px] font-mono tabular-nums text-white/80 w-8">
-            {currentTime.toFixed(1)}s
-          </span>
+        <div className="relative w-full h-1 bg-white/25 transition-all group-hover/timeline:h-2">
+          <div
+            className="bg-white h-full transition-all duration-100 ease-linear shadow-sm"
+            style={{ width: `${(currentTime / 15) * 100}%` }}
+          />
           <input
             type="range"
             min="0"
@@ -345,80 +661,8 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ beats }) => {
             step="0.05"
             value={currentTime}
             onChange={handleSeek}
-            className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-amber-400"
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
-          <span className="text-[11px] font-mono tabular-nums text-white/60 w-8 text-right">
-            15.0s
-          </span>
-        </div>
-
-        {/* Action Controls Row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleTogglePlay}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
-              title={isPlaying ? "Pause" : "Play"}
-            >
-              {isPlaying ? (
-                <Pause className="w-4 h-4 fill-current" />
-              ) : (
-                <Play className="w-4 h-4 fill-current ml-0.5" />
-              )}
-            </button>
-
-            <button
-              onClick={handleReset}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
-              title="Restart"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Background Jazz & Voice Indicators + Mute Button */}
-          <div className="flex items-center gap-2">
-            {/* Background Jazz Volume Slider Badge */}
-            <div
-              className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/10 text-white/80 border border-white/5 text-[11px]"
-              title={`Background Jazz Volume: ${(bgMusicVolume * 100).toFixed(0)}%`}
-            >
-              <Music className={`w-3.5 h-3.5 ${isPlaying && !isMuted && bgMusicVolume > 0 ? "text-amber-300 animate-pulse" : "text-white/40"}`} />
-              <input
-                type="range"
-                min="0"
-                max="0.25"
-                step="0.01"
-                value={bgMusicVolume}
-                onChange={(e) => setBgMusicVolume(parseFloat(e.target.value))}
-                className="w-11 sm:w-14 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-amber-400"
-                title={`Music volume: ${(bgMusicVolume * 100).toFixed(0)}%`}
-              />
-              <span className="text-[9px] font-mono tabular-nums text-white/60">
-                {(bgMusicVolume * 100).toFixed(0)}%
-              </span>
-            </div>
-
-            {isPlaying && !isMuted && (
-              <div className="flex items-center gap-0.5 mr-0.5" title="Natural Voice Active">
-                <span className="w-1 bg-amber-400 rounded-full animate-[sound-wave_0.8s_ease-in-out_infinite]" />
-                <span className="w-1 bg-amber-400 rounded-full animate-[sound-wave_0.8s_ease-in-out_infinite_0.2s]" />
-                <span className="w-1 bg-amber-400 rounded-full animate-[sound-wave_0.8s_ease-in-out_infinite_0.4s]" />
-              </div>
-            )}
-
-            <button
-              onClick={() => setIsMuted(!isMuted)}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
-              title={isMuted ? "Unmute Audio" : "Mute Audio"}
-            >
-              {isMuted ? (
-                <VolumeX className="w-4 h-4 text-stone-400" />
-              ) : (
-                <Volume2 className="w-4 h-4 text-amber-400" />
-              )}
-            </button>
-          </div>
         </div>
       </div>
     </div>
