@@ -27,11 +27,11 @@ export const OFFICIAL_BEATS: BeatItem[] = [
     timeRange: "0–5s",
     startSec: 0,
     endSec: 5,
-    narration: "In Korea, everyone drinks “아이스 아메리카노”—that’s Iced Americano! It’s so refreshing.",
+    narration: "Almost everyone in Korea drinks “아이스 아메리카노”—that’s Iced Americano! So refreshing.",
     wordCount: 11,
     subtitleLines: [
-      "In Korea, everyone drinks “아이스 아메리카노”—",
-      "that’s Iced Americano! It’s so refreshing."
+      "Almost everyone drinks “아이스 아메리카노”—",
+      "that’s Iced Americano! So refreshing."
     ],
     koreanTerms: [
       {
@@ -50,11 +50,11 @@ export const OFFICIAL_BEATS: BeatItem[] = [
     timeRange: "5–10s",
     startSec: 5,
     endSec: 10,
-    narration: "You’ll find it everywhere, and it’s super affordable with low calories.",
+    narration: "With cafes on every corner, it’s always served—and usually the cheapest!",
     wordCount: 11,
     subtitleLines: [
-      "You’ll find it everywhere,",
-      "and it’s super affordable with low calories."
+      "With cafes on every corner, it’s always served—",
+      "and usually the cheapest!"
     ],
     koreanTerms: [
       {
@@ -64,7 +64,7 @@ export const OFFICIAL_BEATS: BeatItem[] = [
       }
     ],
     visualDirection: "Fast-paced montage of Seoul street corners, office workers walking with take-out cups, and touch-screen order kiosks in budget coffee franchises.",
-    onScreenGraphics: "Fast floating tags: 0 CALORIES · ~2,000 KRW (~$1.50) · ON EVERY CORNER",
+    onScreenGraphics: "Fast floating tags: ALWAYS ON MENU · CHEAPEST OPTION · ON EVERY CORNER",
     soundDesign: "Bustling Seoul street ambiance, quick camera whip whoosh, coin/cash register chime",
     imagePath: "/src/assets/images/seoul_cafe_street_takeaway_1792390266683.jpg"
   },
@@ -73,11 +73,11 @@ export const OFFICIAL_BEATS: BeatItem[] = [
     timeRange: "10–15s",
     startSec: 10,
     endSec: 15,
-    narration: "That’s why Koreans sip it all year round—even in winter!",
-    wordCount: 10,
+    narration: "Koreans drink it all year round—even in freezing winter!",
+    wordCount: 9,
     subtitleLines: [
-      "That’s why Koreans sip it",
-      "all year round—even in winter!"
+      "Koreans drink it all year round—",
+      "even in freezing winter!"
     ],
     koreanTerms: [
       {
